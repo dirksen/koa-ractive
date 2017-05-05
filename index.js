@@ -37,11 +37,23 @@ function merge (obj1, obj2) {
 };
 
 
-module.exports = function (directory, opts) {
-	var base=directory
+module.exports = function (opts) {
+	let base = opts.path
+	let partialsDir = base + opts.partialsPath
+	let ext = opts.ext
+	let partials = {}
+
+	// Register all partials
+	fs.readdir(partialsDir, (err, files) => {
+		if (!files) return
+		files.forEach(file => {
+			let name = path.basename(file, path.extname(file))
+			let code = fs.readFileSync(partialsDir+'/'+file, 'utf8')
+			partials[name] = code
+		});
+	})
 
 	function parser(path) {
-		console.log(path)
 		var template = { v:1, t:[] }
 		try {
 			template = rcu.parse(fs.readFileSync(path, 'utf8')).template
@@ -50,13 +62,14 @@ module.exports = function (directory, opts) {
 	}
 
 	function render(path, data) {
-		var url = base+'/'+path+'.ract'
+		var url = base+'/'+path+ext
 
 		// Merge context locals with data
 		data = merge(this.locals || {}, data || {})
 
 		var html = new Ractive({
 			template: parser(url),
+			partials: partials,
 			data: data
 		}).toHTML()
 		this.body = html;
