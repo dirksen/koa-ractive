@@ -6,7 +6,7 @@
     "url": "https://github.com/heinzeya/koa-ractive.git"
   },
   "dependencies": {
-    "ractive": "^0.6.1",
+    "ractive": "^0.9.0",
     "rcu": "^0.3.0"
   }
 }
