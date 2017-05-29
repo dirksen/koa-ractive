@@ -1,6 +1,6 @@
 var path = require('path')
 var Ractive = require('ractive')
-var rcu = require('rcu/rcu.node')
+var rcu = require('rcu')
 var fs = require('fs')
 
 rcu.init(Ractive)
