@@ -1,9 +1,6 @@
 var path = require('path')
-var Ractive = require('ractive')
-var rcu = require('rcu')
+var Ractive = require('Ractive')
 var fs = require('fs')
-
-rcu.init(Ractive)
 
 /**
  * Shallow copy two objects into a new object
@@ -38,10 +35,12 @@ function merge (obj1, obj2) {
 
 
 module.exports = function (opts) {
-	let base = opts.path
-	let partialsDir = base + opts.partialsPath
-	let ext = opts.ext
-	let partials = {}
+	let base = opts.path;
+	let partialsDir = opts.partialsPath || base + '/partials';
+	let ext = opts.ext || '.mustache';
+	let mainBodyPartialName = opts.mainBodyPartialName || 'mainbody';
+	let ractiveOpts = opts.ractiveOpts || {};
+	ractiveOpts.partials = {};
 
 	// Register all partials
 	fs.readdir(partialsDir, (err, files) => {
@@ -49,29 +48,20 @@ module.exports = function (opts) {
 		files.forEach(file => {
 			let name = path.basename(file, path.extname(file))
 			let code = fs.readFileSync(partialsDir+'/'+file, 'utf8')
-			partials[name] = code
+			ractiveOpts.partials[name] = code
 		});
 	})
 
-	function parser(path) {
-		var template = { v:1, t:[] }
-		try {
-			template = rcu.parse(fs.readFileSync(path, 'utf8')).template
-		} catch (e) { console.error(e) }
-		return template
-	}
+	ractiveOpts.template = fs.readFileSync(`${base}/layout${ext}`, 'utf8');
 
-	function render(path, data) {
-		var url = base+'/'+path+ext
+	function render(tmpl, data) {
+		path = base+'/'+tmpl+ext;
+		ractiveOpts.partials[mainBodyPartialName] = fs.readFileSync(path, 'utf8');
 
 		// Merge context locals with data
-		data = merge(this.locals || {}, data || {})
+		ractiveOpts.data = merge(this.state || {}, data || {})
 
-		var html = new Ractive({
-			template: parser(url),
-			partials: partials,
-			data: data
-		}).toHTML()
+		var html = new Ractive(ractiveOpts).toHTML()
 		this.body = html;
 	}
 
