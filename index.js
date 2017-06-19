@@ -1,5 +1,5 @@
 var path = require('path')
-var Ractive = require('Ractive')
+var Ractive = require('ractive')
 var fs = require('fs')
 
 /**
